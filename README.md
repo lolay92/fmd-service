@@ -1,114 +1,147 @@
 [![test](https://github.com/lolay92/data-service/actions/workflows/ci.yml/badge.svg)](https://github.com/lolay92/data-service/actions/workflows/ci.yml)
 
-# Market Data Service
+# Financial Market Data (FMD) Service
 
-A flexible and extensible market data service capable of integrating multiple vendors for fetching financial market data.
-
-## Project Structure
-
-```
-data-service/
-├── src/
-│   └── data_services/
-│       ├── loaders/
-│       ├── utils/
-│       └── vendors/
-├── tests/
-├── db/
-├── logs/
-├── out/
-└── ...
-```
+A vendor-agnostic financial market data collection service built with modern Python features. Supports multiple data vendors through a unified interface, with async data fetching.
 
 ## Features
 
+- 🔌 **Vendor Agnostic**: Unified interface for multiple data providers (EODHD, Polygon) using Python's Protocol
+- 🚀 **Async Processing**: Efficient concurrent data fetching with automatic retry mechanisms
+- 📊 **Data Management**: 
+  - HDF5 data archiving with compression
+  - Duplicate detection and handling
+  - Parallel data processing capabilities
+  - Exponential backoff retry mechanism
 
-- Asynchronous data fetching
-- OHLCV (Open, High, Low, Close, Volume) data retrieval
-- Intraday data support (incoming)
-- Extensible architecture for easy addition of new data vendors
+
+## Architecture
+
+The project is structured around several key components:
+
+### Core Components
+
+- **Vendor Interface**: Abstract Protocol defining the contract for data providers
+- **Async Handler**: Efficient concurrent data fetching with session management
+- **Data Loaders**: 
+  - Historical data with HDF5 archiving
+  - Reference data (exchanges, symbols)
+  - Live data support (ongoing)
+- **Data Processing**: Vendor-specific data processors/parsers
+
+### Project Structure
+
+```
+fmd/
+├── loaders/
+│   ├── historical.py    # Historical data fetching and archiving
+│   ├── live.py         # Live data handling
+│   └── misc.py         # Reference data operations
+├── utils/
+│   ├── async_marketdata_handler.py  # Async processing
+│   ├── data_process_utils.py        # Data processing
+│   └── http_response_handler.py     # HTTP handling and retries
+└── vendors/
+    ├── vendor.py       # Base Protocol interface
+    ├── eodhd.py       # EODHD implementation
+    └── polygon.py     # Polygon implementation
+```
 
 ## Installation
 
-1. Clone the repository:
-   ```
-   git clone https://github.com/your-username/data-service.git
-   cd data-service
-   ```
+```bash
+# Clone the repository
+git clone https://github.com/lolay92/fmd-service.git
 
-2. Install dependencies using Poetry:
-   ```
-   poetry install
-   ```
-
-3. Set up the database:
-   ```
-   cd db
-   ./initdb.sh
-   ```
+# Install dependencies using Poetry
+poetry install
+```
 
 ## Configuration
 
-1. Create a `.env` file in the project root and add your API keys:
-   ```
-   EODHD_API_KEY=your_eodhd_api_key
-   TIINGO_API_KEY=your_tiingo_api_key
-   ```
+1. Create a `.env` file with your API keys:
+```env
+EODHISTORICALDATA=your_eod_key
+POLYGON=your_polygon_key
+```
 
-2. Configure your data universes in `src/data_services/utils/universe.py`.
+2. Configure your universe in `config/universe.yml`:
+```yaml
+my_universe:
+    desc: "Technology stocks"
+    symbols: ["AAPL", "MSFT"]
+```
 
-## Usage
+## Usage Examples
 
-Here's a basic example of how to use the market data service:
+### Basic Usage
 
 ```python
-from data_services.vendors.eodhd import Eodhd
-from data_services.utils.universe import Universe
-from data_services._loader import getData
+import asyncio
+from datetime import datetime
+from fmd.utils.universe import UniverseManager
+from fmd.vendors.polygon import PolygonVendor, PolygonAssetClass
+from fmd.utils.data_process_utils import TimeSeriesDataQuery
+from fmd.loaders.historical import get_data
 
-# Define your universe
-universe = Universe.ETF 
+# Initialize universe and vendor
+universe_manager = UniverseManager()
+universe = universe_manager.get_universe("my_universe")
 
-# Fetch OHLCV data
-data = getData(Eodhd, universe, start_date='2023-01-01', end_date='2023-12-31')
+# Create Polygon vendor instance
+polygon_vendor = PolygonVendor(
+    asset_class=PolygonAssetClass.STOCKS,
+)
 
-# Process the data
-print(data.head())
+# Fetch symbol details
+symbol_details = asyncio.run(
+    polygon_vendor.fetch_multi_symbols_details(universe.symbols)
+)
+
+# Fetch historical data
+query = TimeSeriesDataQuery(
+    universe=universe,
+    start=datetime(2023, 12, 1),
+    end=datetime(2023, 12, 2),
+    timespan="hour",
+    multiplier=1
+)
+
+# Get historical data with .h5 archiving
+universe_name, data = asyncio.run(
+    get_data(
+        polygon_vendor, 
+        query=query, 
+        do_archive=True, 
+        output_path="path/to/hist/data"
+    )
+)
 ```
 
-## Adding a New Vendor
+### Adding a New Vendor
 
-1. Create a new file in `src/data_services/vendors/` (e.g., `new_vendor.py`).
-2. Implement the vendor class, inheriting from `vendor.MarketDataVendor`.
-3. Override necessary methods like `fetchOhlcv`, `fetchIntraday`, etc.
-4. Update `src/data_services/_loader.py` to include the new vendor.
+Implement the MarketDataVendor Protocol:
 
-## Running Tests
-
-Execute the test suite using pytest:
-
-```
-pytest tests/
+```python
+class NewVendor:
+    def fetch_supported_exchanges(self) -> List[Dict]:
+        ...
+    
+    def fetch_symbols(self, exchange_code: str) -> List[Dict]:
+        ...
 ```
 
-## Project Schema
+## Development
 
-```mermaid
-graph TD
-    A[Market Data Service] --> B[Loaders]
-    A --> C[Utils]
-    A --> D[Vendors]
-    B --> E[OHLCV Loader]
-    B --> F[Intraday Loader]
-    B --> G[Misc Loader]
-    C --> H[Async Handler]
-    C --> I[Data Processing]
-    C --> J[HTTP Response Handler]
-    D --> K[EODHD]
-    D --> L[Tiingo]
-    D --> M[Base Vendor]
+### Running Tests (ongoing)
+
+```bash
+poetry run pytest
 ```
 
 ## License
+This project is licensed under the MIT License.
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+## Contributing
+
+Contributions are welcome! Please read our contributing guidelines and submit pull requests to our repository.
