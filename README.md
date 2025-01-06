@@ -22,7 +22,7 @@ data-service/
 
 ## Features
 
-- Multi-vendor support (currently EODHD)
+
 - Asynchronous data fetching
 - OHLCV (Open, High, Low, Close, Volume) data retrieval
 - Intraday data support (incoming)
