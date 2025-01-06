@@ -1,0 +1,24 @@
+# Byte-compiled / Optimized / DLL files
+**/__pycache__/
+**/*_cache
+**/.DS_Store
+
+# Visual studio Code
+.vscode/
+
+# Environments
+.env
+.venv/
+
+# Units tests Coverage reports
+htmlcov/ 
+.coverage
+
+# Text files 
+*.txt
+
+# notebooks
+*.ipynb
+
+# Other directories: Output / Logs 
+out/

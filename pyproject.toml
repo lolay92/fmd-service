@@ -1,0 +1,39 @@
+[tool.poetry]
+name = "financial market data service"
+version = "0.1.0"
+description = " A modulable and scalable system to pull any necessary markets data using multipe APIs sources. "
+authors = ["lolay92"]
+readme = "README.md"
+packages = [{include = "fmd", from = "src"}]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.12"
+aiohttp = "^3.8.4"
+requests = "^2.28.2"
+ipykernel = "^6.22.0"
+pandas = "^2.0.0"
+tables = "^3.10.0"
+matplotlib = "^3.7.1"
+python-dotenv = "^1.0.0"
+pandas-stubs = "^2.0.2.230605"
+types-requests = "^2.31.0.1"
+pyyaml = "^6.0.2"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.3.0"
+pytest = "^7.4.0"
+pytest-asyncio = "^0.21.1"
+pytest-cov = "^4.1.0"
+mypy = "^1.4.1"
+flake8 = "^6.0.0"
+pytest-dependency = "^0.5.1"
+
+[tool.black]
+line-length = 150
+
+[tool.pytest.ini_options]
+testpaths= ["tests"]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
