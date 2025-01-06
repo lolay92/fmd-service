@@ -6,9 +6,9 @@ A vendor-agnostic financial market data collection service built with modern Pyt
 
 ## Features
 
-- 🔌 **Vendor Agnostic**: Unified interface for multiple data providers (EODHD, Polygon) using Python's Protocol
-- 🚀 **Async Processing**: Efficient concurrent data fetching with automatic retry mechanisms
-- 📊 **Data Management**: 
+- **Vendor Agnostic**: Unified interface for multiple data providers (EODHD, Polygon) using Python's Protocol
+- **Async Processing**: Efficient concurrent data fetching with automatic retry mechanisms
+- **Data Management**: 
   - HDF5 data archiving with compression
   - Duplicate detection and handling
   - Parallel data processing capabilities
